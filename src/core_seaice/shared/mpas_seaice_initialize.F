@@ -73,6 +73,8 @@ contains
 
     call mpas_log_write("seaice_init: Initialize sea-ice model")
 
+    call test_block_deactivation(domain)
+
     ! init testing system test arrays
     call seaice_set_testing_system_test_arrays(domain)
 
@@ -123,6 +125,73 @@ contains
     call seaice_reset_coupler_fluxes(domain)
 
   end subroutine seaice_init!}}}
+
+!|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+!
+!  test_block_deactivation
+!
+!> \brief
+!> \author Adrian K. Turner, LANL
+!> \date
+!> \details
+!>
+!
+!-----------------------------------------------------------------------
+
+  subroutine test_block_deactivation(domain)
+
+    type(domain_type), intent(inout) :: &
+         domain !< Input/Output:
+
+    type(block_type), pointer :: &
+         block
+
+    type(MPAS_pool_type), pointer :: &
+         haloDeactivationPool
+
+    integer, dimension(:), pointer :: &
+         haloArray, &
+         testArray
+
+    call mpas_log_write("Start test_block_deactivation")
+
+    ! set array to local block ID
+    block => domain % blocklist
+    do while (associated(block))
+
+       call MPAS_pool_get_subpool(block % structs, "haloDeactivation", haloDeactivationPool)
+
+       call MPAS_pool_get_array(haloDeactivationPool, "haloArray", haloArray)
+
+       haloArray(:) = block % blockID
+
+       block => block % next
+    end do
+
+    ! halo exchange the block id array
+    call MPAS_dmpar_field_halo_exch(domain, 'haloArray')
+
+    ! See if min max of array is now different from global block id
+    block => domain % blocklist
+    do while (associated(block))
+
+       call MPAS_pool_get_subpool(block % structs, "haloDeactivation", haloDeactivationPool)
+
+       call MPAS_pool_get_array(haloDeactivationPool, "haloArray", haloArray)
+       call MPAS_pool_get_array(haloDeactivationPool, "testArray", testArray)
+
+       if (minval(haloArray) < block % blockID .or. maxval(haloArray) > block % blockID) then
+          testArray(:) = 1
+       else
+          testArray(:) = 0
+       endif
+
+       block => block % next
+    end do
+
+    call mpas_log_write("End test_block_deactivation")
+
+  end subroutine test_block_deactivation
 
 !|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 !

@@ -83,6 +83,11 @@ module mpas_block_creator
        blockCursor % blockID = blockID(i)
        blockCursor % localBlockID = i - 1
        blockCursor % domain => domain
+       if (blockID(i) >= 2) then
+          blockCursor % isActive = .false.
+       else
+          blockCursor % isActive = .true.
+       endif
   
        ! Link to block, and setup array size
        fieldCursor % block => blockCursor

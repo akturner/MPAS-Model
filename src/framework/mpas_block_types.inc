@@ -18,6 +18,8 @@
    ! Derived type for storing part of a domain; used as a basic unit of work for a process
    type block_type
 
+      logical :: isActive = .true.
+
       integer :: blockID   ! Unique global ID number for this block
       integer :: localBlockID  ! Unique local ID number for this block
 

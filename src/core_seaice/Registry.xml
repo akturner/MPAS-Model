@@ -3748,6 +3748,12 @@
 		<var name="testArrayRestartability"		type="real"	dimensions="nCells Time"/>
 	</var_struct>
 
+	<!-- Testing of halo deactivation -->
+	<var_struct name="haloDeactivation" time_levs="1">
+		<var name="haloArray" type="integer" dimensions="nCells Time"/>
+		<var name="testArray" type="integer" dimensions="nCells Time"/>
+	</var_struct>
+
 	<!-- Point diagnostics -->
 	<var_struct name="pointLocations" time_levs="1">
 		<var name="pointCellGlobalID" type="integer" dimensions="nPoints" units="unitless"

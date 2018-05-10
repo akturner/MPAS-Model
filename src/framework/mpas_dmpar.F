@@ -1543,6 +1543,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         nOwnedBlocks = 0
         fieldCursor => ownedListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           nOwnedBlocks = nOwnedBlocks + 1
           if(associated(fieldCursor % sendList % halos(haloLayer) % exchList)) then
             call mpas_dmpar_destroy_exchange_list(fieldCursor % sendList % halos(haloLayer) % exchList)
@@ -1550,6 +1551,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
 
           if(associated(fieldCursor % copyList % halos(haloLayer) % exchList)) then
             call mpas_dmpar_destroy_exchange_list(fieldCursor % copyList % halos(haloLayer) % exchList)
+          end if
           end if
           fieldCursor => fieldCursor % next
         end do
@@ -1561,12 +1563,13 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         nNeededBlocks = 0
         fieldCursor => neededListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           nNeededBlocks = nNeededBlocks + 1
           nNeededList = nNeededList + fieldCursor % dimSizes(1)
           if(associated(fieldCursor % recvList % halos(haloLayer) % exchList)) then
             call mpas_dmpar_destroy_exchange_list(fieldCursor % recvList % halos(haloLayer) % exchList)
           end if
-
+          end if
           fieldCursor => fieldCursor % next
         end do
 
@@ -1577,12 +1580,14 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         call mpas_hash_init(neededHash)
         fieldCursor => neededListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           do i = 1, fieldCursor % dimSizes(1)
             if(.not. mpas_hash_search(neededHash, fieldCursor % array(i))) then
               nUniqueNeededList = nUniqueNeededList + 1
               call mpas_hash_insert(neededHash, fieldCursor % array(i))
             end if
           end do
+          end if
           fieldCursor => fieldCursor % next
         end do
 
@@ -1597,6 +1602,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         j = 0
         fieldCursor => neededListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           do i = 1, fieldCursor % dimSizes(1)
             if(.not. mpas_hash_search(neededHash, fieldCursor % array(i))) then
               j = j +1
@@ -1605,6 +1611,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
               call mpas_hash_insert(neededHash, fieldCursor % array(i))
             end if
           end do
+          end if
           fieldCursor => fieldCursor % next
         end do
 
@@ -1620,7 +1627,9 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         if (present(offsetListField)) then
           offsetCursor => offsetListField
           do while (associated(offsetCursor))
+            if (offsetCursor % block % isActive) then
             offsetList(offsetCursor % block % localBlockID+1) = offsetCursor % scalar
+            endif
             offsetCursor => offsetCursor % next
           end do
         else
@@ -1634,13 +1643,17 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         if(present(ownedLimitField)) then
           ownedLimitCursor => ownedLimitField
           do while(associated(ownedLimitCursor))
+            if (ownedLimitCursor % block % isActive) then
             ownedLimitList(ownedLimitCursor % block % localBlockID+1) = ownedLimitCursor % scalar
+            endif
             ownedLimitCursor => ownedLimitCursor % next
           end do
         else
           fieldCursor => ownedListField
           do while(associated(fieldCursor))
+            if (fieldCursor % block % isActive) then
             ownedLimitList(fieldCursor % block % localBlockID+1) = fieldCursor % dimSizes(1)
+            endif
             fieldCursor => fieldCursor % next
           end do
         end if
@@ -1652,8 +1665,10 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         nOwnedList = 0
         fieldCursor => ownedListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           iBlock = fieldcursor % block % localBlockID + 1
           nOwnedList = nOwnedList + ownedLimitList(iBlock)
+          endif
           fieldCursor => fieldCursor % next
         end do
 
@@ -1668,10 +1683,12 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         fieldCursor => ownedListField
         i = 1
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           iBlock = fieldCursor % block % localBlockID + 1
           ownedList(i:i+ownedLimitList(iBlock)-1) = fieldCursor % array(1:ownedLimitList(iBlock))
           ownedBlock(i:i+ownedLimitList(iBlock)-1) = fieldCursor % block % localBlockID
           i = i + ownedLimitList(iBlock)
+          endif
           fieldCursor => fieldCursor % next
         end do
 
@@ -1683,9 +1700,11 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         fieldCursor => neededListField
         i = 1
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           neededList(i:i+fieldCursor % dimSizes(1)-1) = fieldCursor % array(:)
           neededBlock(i:i+fieldCursor % dimSizes(1)-1) = fieldCursor % block % localBlockID
           i = i + fieldCursor % dimSizes(1)
+          endif
           fieldCursor => fieldCursor % next
         end do
 
@@ -1794,6 +1813,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
 
           fieldCursor => ownedListField
           do while (associated(fieldCursor))
+            if (fieldCursor % block % isActive) then
             iBlock = fieldCursor % block % localBlockID + 1
 
             if (numToSend(iBlock) > 0) then
@@ -1834,6 +1854,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
               end do
             end if
 
+            endif
             fieldCursor => fieldCursor % next
           end do
 
@@ -1868,6 +1889,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
 
           fieldCursor => neededListField
           do while (associated(fieldCursor))
+            if (fieldCursor % block % isActive) then
             do j = 1, fieldCursor % dimSizes(1)
               k = mpas_binary_search(uniqueSortedNeededList, 2, 1, nUniqueNeededList, fieldCursor % array(j))
               if(k <= nUniqueNeededList) then
@@ -1877,11 +1899,13 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
                 end if
               end if
             end do
+            endif
             fieldCursor => fieldCursor % next
           end do
 
           fieldCursor => neededListField
           do while (associated(fieldCursor))
+            if (fieldCursor % block % isActive) then
             iBlock = fieldCursor % block % localBlockID + 1
 
             if (numToRecv(iBlock) > 0) then
@@ -1923,6 +1947,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
               end do
             end if
 
+            endif
             fieldCursor => fieldCursor % next
           end do
         end do
@@ -1955,6 +1980,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
         allocate(numToSend(1))
         fieldCursor => ownedListField
         do while (associated(fieldCursor))
+          if (fieldCursor % block % isActive) then
           iBlock = fieldCursor % block % localBlockID + 1
           nOwnedList = ownedLimitList(iBlock)
           allocate(ownedListSorted(2, nOwnedList))
@@ -2028,6 +2054,7 @@ subroutine mpas_dmpar_get_exch_list(haloLayer, ownedListField, neededListField, 
 
           deallocate(recipientList)
           deallocate(ownedListSorted)
+          endif
           fieldCursor => fieldCursor % next
         end do
         deallocate(numToSend)

@@ -261,6 +261,7 @@ module mpas_bootstrapping
       !    upon exit they contain all owned and halo elements. A side effect of this is that the exchange
       !    lists for these fields are valid (and can be used, e.g., by mpas_block_creator_finalize_block_phase1).
       !
+      !call deactivate_blocks(domain)
       call mpas_block_creator_build_cell_halos(nHalos, indexToCellID_Block, nEdgesOnCell_Block, cellsOnCell_Block, &
                                                verticesOnCell_Block, edgesOnCell_Block, nCellsSolveField)
 
@@ -422,6 +423,33 @@ module mpas_bootstrapping
 
    end subroutine mpas_bootstrap_framework_phase1 !}}}
 
+   subroutine deactivate_blocks(domain)
+
+     type (domain_type), pointer :: domain
+
+     type(block_type), pointer :: block
+
+     integer, dimension(64) :: activeBlocks
+
+     integer :: i
+
+     call mpas_log_write("deactivate_blocks start")
+
+     block => domain % blocklist
+     do while (associated(block))
+
+        if (block % blockID >=2) then
+           block % isActive = .false.
+        else
+           block % isActive = .true.
+        endif
+
+        block => block % next
+     end do
+
+     call mpas_log_write("deactivate_blocks end")
+
+   end subroutine deactivate_blocks
 
    !***********************************************************************
    !

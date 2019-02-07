@@ -312,8 +312,8 @@ contains
          strain22Tmp, &
          strain12Tmp
 
-    integer, pointer :: &
-         nCells
+    integer, dimension(:), pointer :: &
+         nCellsArray
 
     integer, dimension(:), pointer :: &
          nEdgesOnCell
@@ -322,7 +322,7 @@ contains
          verticesOnCell
 
     ! init variables
-    call MPAS_pool_get_dimension(mesh, "nCells", nCells)
+    call MPAS_pool_get_dimension(mesh, "nCellsArray", nCellsArray)
 
     call MPAS_pool_get_array(mesh, "nEdgesOnCell", nEdgesOnCell)
     call MPAS_pool_get_array(mesh, "verticesOnCell", verticesOnCell)
@@ -330,7 +330,7 @@ contains
     ! loop over cells
     !$omp parallel do default(shared) private(iCell, iGradientVertex, iBasisVertex, iVertex, jVertex,&
     !$omp&                                    strain11Tmp, strain22Tmp, strain12Tmp)
-    do iCell = 1, nCells
+    do iCell = 1, nCellsArray(2)
 
        if (solveStress(iCell) == 1) then
 
@@ -431,8 +431,8 @@ contains
          iCell, &
          iVertexOnCell
 
-    integer, pointer :: &
-         nCells
+    integer, dimension(:), pointer :: &
+         nCellsArray
 
     integer, dimension(:), pointer :: &
          nEdgesOnCell
@@ -441,7 +441,7 @@ contains
          areaCell
 
     ! init variables
-    call MPAS_pool_get_dimension(mesh, "nCells", nCells)
+    call MPAS_pool_get_dimension(mesh, "nCellsArray", nCellsArray)
 
     call MPAS_pool_get_array(mesh, "nEdgesOnCell", nEdgesOnCell)
     call MPAS_pool_get_array(mesh, "areaCell", areaCell)
@@ -449,7 +449,7 @@ contains
     if (.not. revisedEVP) then
 
        !$omp parallel do default(shared) private(iCell, iVertexOnCell)
-       do iCell = 1, nCells
+       do iCell = 1, nCellsArray(2)
 
           replacementPressure(:,iCell) = 0.0_RKIND
 
@@ -479,7 +479,7 @@ contains
     else
 
        !$omp parallel do default(shared) private(iCell, iVertexOnCell)
-       do iCell = 1, nCells
+       do iCell = 1, nCellsArray(2)
 
           if (solveStress(iCell) == 1) then
 
@@ -571,7 +571,7 @@ contains
          iVelocityVertex
 
     integer, pointer :: &
-         nVertices, &
+         nVerticesSolve, &
          vertexDegree
 
     integer, dimension(:), pointer :: &
@@ -584,7 +584,7 @@ contains
          areaTriangle
 
     ! init variables
-    call MPAS_pool_get_dimension(mesh, "nVertices", nVertices)
+    call MPAS_pool_get_dimension(mesh, "nVerticesSolve", nVerticesSolve)
     call MPAS_pool_get_dimension(mesh, "vertexDegree", vertexDegree)
 
     call MPAS_pool_get_array(mesh, "nEdgesOnCell", nEdgesOnCell)
@@ -593,7 +593,7 @@ contains
 
     ! loop over velocity positions
     !$omp parallel do default(shared) private(iVertex, iSurroundingCell, iCell, iVelocityVertex, stressDivergenceUCell, stressDivergenceVCell, iStressVertex)
-    do iVertex = 1, nVertices
+    do iVertex = 1, nVerticesSolve
 
        if (solveVelocity(iVertex) == 1) then
 
